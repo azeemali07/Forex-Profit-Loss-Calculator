@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Profit & Loss Calculator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff66b2, #9b59b6); /* Pink and Purple gradient */
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 10px 0;
+            display: block;
+            color: #333;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #f1f1f1; /* Light Gray input for clean look */
+        }
+        select, input {
+            background-color: #fff;
+            border: 1px solid #d1d1d1;
+        }
+        button {
+            background-color: #e0a800; /* Soft Gold button */
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 8px;
+            padding: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Soft glow effect */
+        }
+        button:hover {
+            background-color: #c88a00; /* Slightly darker gold for hover effect */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Glowy hover effect */
+        }
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+        .profit {
+            color: #28a745; /* Green for profit */
+        }
+        .loss {
+            color: #dc3545; /* Red for loss */
+        }
+        .error {
+            color: #dc3545; /* Red for error messages */
+            font-size: 18px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            label {
+                font-size: 16px;
+            }
+            input, select, button {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Forex Profit & Loss Calculator</h1>
+        <label for="pair">Currency Pair:</label>
+        <select id="pair" onchange="updatePrices()">
+            <option value="EUR/USD">EUR/USD</option>
+            <option value="BTC/USD">BTC/USD</option>
+            <option value="GBP/JPY">GBP/JPY</option>
+            <option value="USD/JPY">USD/JPY</option>
+            <option value="NAS100">NAS100</option>
+            <option value="XAU/USD">XAU/USD</option>
+            <option value="US30">US30</option> <!-- Added US30 -->
+        </select>
+
+        <label for="openPrice">Enter Open Price:</label>
+        <input type="number" id="openPrice" placeholder="Enter Open Price">
+
+        <label for="closePrice">Enter Close Price:</label>
+        <input type="number" id="closePrice" placeholder="Enter Close Price">
+
+        <label for="lotSize">Lot Size:</label>
+        <input type="number" id="lotSize" placeholder="Enter Lot Size">
+
+        <label for="tradeType">Trade Type:</label>
+        <select id="tradeType">
+            <option value="Buy">Buy</option>
+            <option value="Sell">Sell</option>
+        </select>
+
+        <button onclick="calculateProfitOrLoss()">Calculate</button>
+
+        <div class="result" id="result"></div>
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        // Initial price and lot size values for each pair
+        const defaultValues = {
+            "EUR/USD": { openPrice: 1.03969, closePrice:1.03960, lotSize: 0.01 },
+            "BTC/USD": { openPrice: 95918.35, closePrice: 95892.35, lotSize: 0.01 },
+            "GBP/JPY": { openPrice: 197.397, closePrice: 197.374, lotSize: 0.01 },
+            "USD/JPY": { openPrice: 157.246, closePrice: 157.223, lotSize: 0.01 },
+            "NAS100": { openPrice: 21634.9, closePrice: 21631.0, lotSize: 0.01 },
+            "XAU/USD": { openPrice: 2614.46, closePrice: 2614.14, lotSize: 0.01 },
+            "US30":   { openPrice: 42987.0, closePrice: 42981.2, lotSize: 0.01 }
+        };
+
+        // Function to update prices based on selected currency pair
+        function updatePrices() {
+            const pair = document.getElementById("pair").value;
+            const values = defaultValues[pair] || {};
+            document.getElementById("openPrice").value = values.openPrice;
+            document.getElementById("closePrice").value = values.closePrice;
+            document.getElementById("lotSize").value = values.lotSize;
+        }
+
+        // Run the update function when the page loads
+        window.onload = updatePrices;
+
+        function calculateProfitOrLoss() {
+            const pair = document.getElementById("pair").value;
+            const openPrice = parseFloat(document.getElementById("openPrice").value);
+            const closePrice = parseFloat(document.getElementById("closePrice").value);
+            const lotSize = parseFloat(document.getElementById("lotSize").value);
+            const tradeType = document.getElementById("tradeType").value;
+
+            document.getElementById("error").innerText = ''; // Reset error message
+            document.getElementById("result").innerText = ''; // Reset result
+
+            if (isNaN(openPrice) || isNaN(closePrice) || isNaN(lotSize)) {
+                document.getElementById("error").innerText = "Please enter valid numeric values.";
+                return;
+            }
+
+            const pipValues = {
+                "EUR/USD": 10 * lotSize,
+                "BTC/USD": 1 * lotSize,
+                "GBP/JPY": 6.535 * lotSize,
+                "USD/JPY": 6.535 * lotSize,
+                "NAS100": 0.1 * lotSize, 
+                "XAU/USD": 10 * lotSize,
+                "US30": 0.1 * lotSize
+            };
+
+            const pipValue = pipValues[pair] || 0;
+            if (pipValue === 0) {
+                document.getElementById("error").innerText = "Currency pair not supported.";
+                return;
+            }
+
+            const isBuy = tradeType === "Buy";
+            const priceDifference = isBuy ? (closePrice - openPrice) : (openPrice - closePrice);
+
+            let pipMovement;
+            if (pair === "EUR/USD") {
+                pipMovement = priceDifference / 0.0001;
+            } else if (pair === "BTC/USD") {
+                pipMovement = priceDifference / 1;
+            } else if (pair === "GBP/JPY" || pair === "USD/JPY") {
+                pipMovement = priceDifference * 100;
+            } else if (pair === "NAS100" || pair === "US30") { 
+                pipMovement = priceDifference * 1;
+            } else if (pair === "XAU/USD") {
+                pipMovement = priceDifference * 10;
+            } else {
+                document.getElementById("error").innerText = "Unsupported currency pair.";
+                return;
+            }
+
+            const profitLoss = pipMovement * pipValue;
+            const resultText = profitLoss > 0 
+                ? `<span class="profit">Profit: (+$${(pair === "NAS100" || pair === "US30" ? (profitLoss * 100).toFixed(2) : profitLoss.toFixed(2))})</span>` 
+                : `<span class="loss">Loss: (-$${(pair === "NAS100" || pair === "US30" ? (Math.abs(profitLoss) * 100).toFixed(2) : Math.abs(profitLoss).toFixed(2))})</span>`;
+
+            document.getElementById("result").innerHTML = resultText;
+        }
+    </script>
+</body>
+</html>
